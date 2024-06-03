@@ -811,4 +811,5 @@ check_cluster_queue_limit(Q) ->
     end.
 
 queue_limit_error(Reason, ReasonArgs) ->
+    rabbit_log:error("queue_limit_exceeded: ", Reason, ReasonArgs),
     {error, queue_limit_exceeded, Reason, ReasonArgs}.
