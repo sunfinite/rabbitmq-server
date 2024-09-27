@@ -34,6 +34,7 @@
 -export([queue_stats/2,
          queue_stats/5,
          queue_declared/1,
+         queue_fault/1,
          queue_created/1,
          queue_deleted/1,
          queues_deleted/1]).
@@ -263,6 +264,12 @@ queue_stats(Name, MessagesReady, MessagesUnacknowledge, Messages, Reductions) ->
 queue_declared(_Name) ->
     %% Name is not needed, but might be useful in the future.
     ets:update_counter(connection_churn_metrics, node(), {6, 1},
+                       ?CONNECTION_CHURN_METRICS),
+    ok.
+
+queue_fault(_Name) ->
+    %% Name is not needed, but might be useful in the future.
+    ets:update_counter(connection_churn_metrics, node(), {8, 1},
                        ?CONNECTION_CHURN_METRICS),
     ok.
 

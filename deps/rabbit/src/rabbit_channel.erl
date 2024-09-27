@@ -2443,6 +2443,10 @@ handle_method(#'queue.declare'{queue       = QueueNameBin,
                       maybe_stat(NoWait, Q)
            end) of
         {ok, MessageCount, ConsumerCount} ->
+	    rabbit_core_metrics:queue_fault(QueueName),
+            rabbit_misc:protocol_error(internal_error,
+                                       "Cannot redeclare '~ts'",
+                                       [rabbit_misc:rs(QueueName)]),
             {ok, QueueName, MessageCount, ConsumerCount};
         {error, not_found} ->
             %% enforce the limit for newly declared queues only

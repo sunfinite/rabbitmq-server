@@ -342,8 +342,8 @@ format_rate(connection_churn_rates, {TCCr, TCCo, TChCr, TChCo, TQD, TQCr, TQCo},
      {queue_declared_details, [{rate, RQD}]},
      {queue_created, TQCr},
      {queue_created_details, [{rate, RQCr}]},
-     {queue_deleted, TQCo},
-     {queue_deleted_details, [{rate, RQCo}]}
+     {queue_fault, TQCo},
+     {queue_fault_details, [{rate, RQCo}]}
     ].
 
 format_rate(connection_stats_coarse_conn_stats, {TR, TS, TRe}, {RR, RS, RRe},
@@ -610,8 +610,8 @@ format_rate(connection_churn_rates, {TCCr, TCCo, TChCr, TChCo, TQD, TQCr, TQCo},
      {queue_created, TQCr},
      {queue_created_details, [{rate, RQCr},
                               {samples, SQCr}] ++ average(SQCr, STQCr, Length)},
-     {queue_deleted, TQCo},
-     {queue_deleted_details, [{rate, RQCo},
+     {queue_fault, TQCo},
+     {queue_fault_details, [{rate, RQCo},
                               {samples, SQCo}] ++ average(SQCo, STQCo, Length)}
     ].
 

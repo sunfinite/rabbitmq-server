@@ -49,4 +49,4 @@
 %% node_metrics :: {node_id, proplist}
 %% node_node_metrics :: {{node_id, node_id}, proplist}
 %% gen_server2_metrics :: {pid, buffer_length}
-%% connection_churn_metrics :: {node(), connection_created, connection_closed, channel_created, channel_closed, queue_declared, queue_created, queue_deleted}
+%% connection_churn_metrics :: {node(), connection_created, connection_closed, channel_created, channel_closed, queue_declared, queue_created, queue_fault}
