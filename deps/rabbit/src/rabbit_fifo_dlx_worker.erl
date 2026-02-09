@@ -632,6 +632,10 @@ log_missing_dlx_once(#state{exchange_ref = DlxResource,
                        "dead-lettered messages from piling up in the source quorum queue. "
                        "This message will not be logged again.",
                        [rabbit_misc:rs(QueueResource), rabbit_misc:rs(DlxResource)]),
+    rabbit_event:notify(queue_dead_letter_failed,
+                        [{queue, QueueResource},
+                         {exchange, DlxResource},
+                         {reason, missing_dlx}]),
     State#state{logged = maps:put(missing_dlx, DlxResource, Logged)}.
 
 clear_log_missing_dlx_once(#state{exchange_ref = DlxResource,
@@ -643,6 +647,10 @@ clear_log_missing_dlx_once(#state{exchange_ref = DlxResource,
               "Forwarding of ~b pending dead-letter messages will be attempted.",
               [rabbit_misc:rs(DlxResource), rabbit_misc:rs(QueueResource),
                rabbit_misc:rs(MissingDlx), maps:size(Pendings)]),
+    rabbit_event:notify(queue_dead_letter_recovered,
+                        [{queue, QueueResource},
+                         {exchange, DlxResource},
+                         {reason, missing_dlx}]),
     State#state{logged = maps:remove(missing_dlx, Logged)};
 clear_log_missing_dlx_once(State) ->
     State.
@@ -665,6 +673,11 @@ log_no_route_once(#state{queue_ref = QueueResource,
                        "in the source quorum queue. "
                        "This message will not be logged again.",
                        [rabbit_misc:rs(QueueResource), rabbit_misc:rs(DlxResource), RoutingKey]),
+    rabbit_event:notify(queue_dead_letter_failed,
+                        [{queue, QueueResource},
+                         {exchange, DlxResource},
+                         {routing_key, RoutingKey},
+                         {reason, no_route}]),
     State#state{logged = maps:put(no_route, {DlxResource, RoutingKey}, Logged)}.
 
 clear_log_no_route_once(#state{exchange_ref = DlxResource,
@@ -679,6 +692,11 @@ clear_log_no_route_once(#state{exchange_ref = DlxResource,
               "Forwarding of ~b pending dead-letter messages will be attempted.",
               [rabbit_misc:rs(QueueResource), rabbit_misc:rs(DlxResource),
                RoutingKey, rabbit_misc:rs(OldDlx), OldRoutingKey, maps:size(Pendings)]),
+    rabbit_event:notify(queue_dead_letter_recovered,
+                        [{queue, QueueResource},
+                         {exchange, DlxResource},
+                         {routing_key, RoutingKey},
+                         {reason, no_route}]),
     State#state{logged = maps:remove(no_route, Logged)};
 clear_log_no_route_once(State) ->
     State.
@@ -697,4 +715,10 @@ log_cycle_once(Queues, RoutingKeys, #state{exchange_ref = DlxResource,
                        "This message will not be logged again.",
                        [rabbit_misc:rs(QueueResource), rabbit_misc:rs(DlxResource),
                         RoutingKeys, Queues]),
+    rabbit_event:notify(queue_dead_letter_failed,
+                        [{queue, QueueResource},
+                         {exchange, DlxResource},
+                         {routing_keys, RoutingKeys},
+                         {reason, cycle},
+                         {queues_in_cycle, Queues}]),
     State#state{logged = maps:put({cycle, Queues}, true, Logged)}.
