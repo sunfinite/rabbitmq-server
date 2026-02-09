@@ -200,6 +200,10 @@ key(federation_link_status) ->
     <<"federation.link.status">>;
 key(federation_link_removed) ->
     <<"federation.link.removed">>;
+key(queue_dead_letter_failed) ->
+    <<"queue.dead.letter.failed">>;
+key(queue_dead_letter_recovered) ->
+    <<"queue.dead.letter.recovered">>;
 key(S) ->
     case string:tokens(atom_to_list(S), "_") of
         [_, "stats"] -> ignore;
