@@ -281,7 +281,11 @@ init_per_group(mount_metrics, Config0) ->
 init_aggregated_metrics(Group, Config0) ->
     Config1 = rabbit_ct_helpers:merge_app_env(
         Config0,
-        [{rabbit, [{collect_statistics, coarse}, {collect_statistics_interval, 100}]}]
+        [{rabbit, [{collect_statistics, coarse}, {collect_statistics_interval, 100}]},
+         %% Enable the per-object endpoint so the readiness probe below can
+         %% confirm queue stats have been collected. Per-object is opt-in by
+         %% default, but tests in these groups depend on it.
+         {rabbitmq_prometheus, [{disable_per_object_endpoint, false}]}]
     ),
     Config2 = init_per_group(Group, Config1, []),
 
