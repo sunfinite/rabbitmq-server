@@ -38,7 +38,7 @@ all_tests() ->
      leader_down_scenario_1,
      replica_down,
      add_replica,
-     add_replica_ignores_non_numeric_replica_timestamp,
+     add_replica_rejects_stale_replica,
      restart_stream,
      delete_stream,
      delete_stream_idempotent,
@@ -98,7 +98,7 @@ init_per_testcase(TestCase, Config)
     ok = meck:new(ra_aux, [passthrough, no_link]),
     Config;
 init_per_testcase(TestCase, Config)
-  when TestCase =:= add_replica_ignores_non_numeric_replica_timestamp ->
+  when TestCase =:= add_replica_rejects_stale_replica ->
     ok = meck:new(osiris_writer, [passthrough, no_link]),
     Config;
 init_per_testcase(_TestCase, Config) ->
@@ -118,7 +118,7 @@ end_per_testcase(TestCase, _Config)
     meck:unload(ra_aux),
     ok;
 end_per_testcase(TestCase, _Config)
-  when TestCase =:= add_replica_ignores_non_numeric_replica_timestamp ->
+  when TestCase =:= add_replica_rejects_stale_replica ->
     meck:unload(osiris_writer),
     ok;
 end_per_testcase(_TestCase, _Config) ->
@@ -1299,29 +1299,19 @@ add_replica(_) ->
                                     }}, S6),
     ok.
 
-add_replica_ignores_non_numeric_replica_timestamp(_) ->
+add_replica_rejects_stale_replica(_) ->
     LeaderPid = fake_pid(n1),
-    N1 = node(LeaderPid),
-    N2 = n2,
-    N3 = n3,
-    N4 = n4,
     Q = amqqueue:set_pid(
-          new_q(<<"add_replica_ignores_non_numeric_replica_timestamp">>, #{}),
+          new_q(<<"add_replica_rejects_stale_replica">>, #{}),
           LeaderPid),
-    meck:expect(osiris_writer, query_replication_state,
-                fun (Pid) when Pid =:= LeaderPid ->
-                        #{N1 => {10, 0},
-                          %% a replica with an empty log reports a
-                          %% non-integer timestamp instead of an integer one
-                          N2 => {10, empty},
-                          %% a genuinely stale replica, well outside the
-                          %% freshness window
-                          N3 => {10, 20000}}
-                end),
-    %% this used to crash with badarith when folding over the non-integer
-    %% timestamp; the genuinely stale replica must still be detected
+    meck:expect(osiris_writer, replica_staleness,
+                fun (Pid) when Pid =:= LeaderPid -> 20000 end),
     ?assertEqual({error, {disallowed, out_of_sync_replica}},
-                 rabbit_stream_coordinator:add_replica(Q, N4)),
+                 rabbit_stream_coordinator:add_replica(Q, n4)),
+    meck:expect(osiris_writer, replica_staleness,
+                fun (Pid) when Pid =:= LeaderPid -> undefined end),
+    ?assertEqual({error, {disallowed, out_of_sync_replica}},
+                 rabbit_stream_coordinator:add_replica(Q, n4)),
     ok.
 
 delete_replica(_) ->
